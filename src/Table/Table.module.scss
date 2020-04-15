@@ -1,0 +1,93 @@
+$shadow-color: #8c8c8c;
+
+.Table {
+  display: flex;
+  flex-direction: column;
+  background-color: var(--row-color);
+  color: var(--text-color);
+  font-size: 12px;
+}
+
+.Table * {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+.TableHeader {
+  box-shadow: 0 5px 5px -5px $shadow-color;
+  z-index: 1000;
+  font-weight: bold;
+  padding: 1em 0;
+}
+
+.TableBody {
+  $track-color: transparent;
+  $thumb-color: #bdbdbd;
+
+  flex-grow: 1;
+  overflow: auto;
+
+  scrollbar-width: thin;
+  scrollbar-color: $thumb-color $track-color;
+  &::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+  &::-webkit-scrollbar-track {
+    background: $track-color;
+  }
+  &::-webkit-scrollbar-thumb {
+    background-color: $thumb-color;
+    border-radius: 3px;
+  }
+}
+
+.TableBodyBackground {
+  background: repeating-linear-gradient(
+    180deg,
+    var(--row-color),
+    var(--row-color) var(--row-height),
+    var(--row-color-alternate) var(--row-height),
+    var(--row-color-alternate) calc(var(--row-height) * 2)
+  );
+}
+
+.TableFooter {
+  display: flex;
+  justify-content: flex-end;
+  padding: 0.3em 2em;
+  box-shadow: 0 -5px 5px -5px $shadow-color;
+  z-index: 1000;
+}
+
+.Pagination {
+  & button {
+    border: none;
+    padding: 0.4em 0.6em;
+    background-color: transparent;
+    font-weight: bold;
+    font-family: inherit;
+    font-size: inherit;
+    color: inherit;
+    cursor: pointer;
+
+    &:hover {
+      background-color: #ddd;
+    }
+
+    &:global(.active) {
+      color: white;
+      background-color: var(--primary-color);
+    }
+
+    &:disabled {
+      color: rgb(201, 201, 201);
+      cursor: not-allowed;
+
+      &:hover {
+        background-color: initial;
+      }
+    }
+  }
+}

@@ -1,4 +1,21 @@
-.App {
-  font-family: sans-serif;
-  text-align: center;
+@import url("https://fonts.googleapis.com/css2?family=Ubuntu:wght@400;700&display=swap");
+
+body {
+  font-family: "Ubuntu", sans-serif;
 }
+
+/* #foo {
+  scrollbar-width: thin;
+  scrollbar-color: blue orange;
+}
+#foo::-webkit-scrollbar {
+  width: 12px;
+}
+#foo::-webkit-scrollbar-track {
+  background: orange;
+}
+#foo::-webkit-scrollbar-thumb {
+  background-color: blue;
+  border-radius: 20px;
+  border: 3px solid orange;
+} */

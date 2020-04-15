@@ -1,49 +1,19 @@
-import React, { useEffect, useRef, useCallback, useState } from "react";
-import { useScroll } from "../customHooks/useScroll";
-import { useResizeObserver } from "../customHooks/useResizeObserver";
+import React, { useEffect, useRef, useState, useMemo, memo } from "react";
+import { useScroll } from "./customHooks/useScroll";
+import { useResizeObserver } from "./customHooks/useResizeObserver";
+import { Pagination } from "./Pagination";
+import styles from "./Table.module.scss";
 
-const rowHeight = 30;
-
-const gradientBackground = `repeating-linear-gradient(
-  180deg,
-  red,
-  red ${rowHeight}px,
-  blue ${rowHeight}px,
-  blue ${rowHeight * 2}px
-)`;
-
-const TableBg: React.FC<{ height: number }> = ({ height }) => {
+const TableBodyBackground: React.FC<{ height: number }> = memo(({ height }) => {
   return (
     <div
+      className={styles.TableBodyBackground}
       style={{
         height,
-        background: gradientBackground,
       }}
     ></div>
   );
-};
-
-const Pagination: React.FC<{
-  pageSize: number;
-  current: number;
-  total: number;
-  onChange: (e: { page: number }) => void;
-}> = ({ pageSize, current, total, onChange }) => {
-  const pages = Math.ceil(total / pageSize);
-  return (
-    <div>
-      {Array.from(Array(pages).keys()).map((p) => (
-        <button
-          key={p}
-          style={current === p + 1 ? { fontWeight: "bold", color: "red" } : {}}
-          onClick={() => onChange({ page: p + 1 })}
-        >
-          {p + 1}
-        </button>
-      ))}
-    </div>
-  );
-};
+});
 
 export interface TableData<TDataItem> {
   items: TDataItem[];
@@ -58,12 +28,21 @@ interface PaginationOptions {
 type TableDataAndPagination<TDataItem> = TableData<TDataItem> &
   PaginationOptions;
 
+export interface TableTheme {
+  "--row-height": number;
+  "--row-color": string;
+  "--row-color-alternate": string;
+  "--primary-color": string;
+  "--text-color": string;
+}
+
 interface TableProps<TDataItem> {
   style: React.CSSProperties;
   onUpdate: (
     current: number,
     pageSize: number
   ) => Promise<TableDataAndPagination<TDataItem>>;
+  theme?: TableTheme;
 }
 
 function mergeData<TDataItem>(
@@ -83,46 +62,40 @@ function mergeData<TDataItem>(
       ),
     ],
   };
-  return data!;
 }
 
-export function Table<TDataItem>({ style, onUpdate }: TableProps<TDataItem>) {
-  const ref = useRef<HTMLDivElement>(null);
+export const defaultTheme: TableTheme = {
+  "--row-height": 30,
+  "--row-color": "#fff",
+  "--row-color-alternate": "#e2e2e2",
+  "--primary-color": "#00af8b",
+  "--text-color": "#404040",
+};
+
+export function Table<TDataItem>({
+  style,
+  onUpdate,
+  theme = defaultTheme,
+}: TableProps<TDataItem>) {
+  const bodyRef = useRef<HTMLDivElement>(null);
 
   const [data, setData] = useState<TableData<TDataItem> | null>(null);
   const [pagination, setPagination] = useState<PaginationOptions | null>(null);
 
-  const [scroll, setScroll] = useState<{
-    top: number;
-    source: "user" | "program";
-  }>({ top: 0, source: "user" });
+  const { scrollTo, scrollTop } = useScroll(bodyRef);
+  const [, height] = useResizeObserver(bodyRef);
 
-  onUpdate = useCallback(onUpdate, []);
-
-  const scrollTo = useScroll({
-    targetRef: ref,
-    onEnd: (e) => {
-      console.log("scroll end", e);
-      setScroll(e);
-    },
-  });
-
-  const [_, height] = useResizeObserver({
-    targetRef: ref,
-    onResize: ({ width, height }) => {
-      console.log("Resize", { width, height });
-    },
-  });
+  const rowHeight = theme["--row-height"];
 
   useEffect(() => {
     if (!height) return;
 
     const pageSize = Math.ceil(height / rowHeight);
 
-    const current = Math.ceil(scroll.top / (pageSize * rowHeight)) + 1;
+    const current = Math.ceil(scrollTop / (pageSize * rowHeight)) + 1;
 
     onUpdate(current, pageSize).then((result) => {
-      setData(mergeData(data, result));
+      setData((d) => mergeData(d, result));
 
       setPagination({
         current: result.current,
@@ -130,30 +103,43 @@ export function Table<TDataItem>({ style, onUpdate }: TableProps<TDataItem>) {
         total: result.total,
       });
     });
-  }, [onUpdate, height, scroll]);
+  }, [onUpdate, height, scrollTop, rowHeight]);
+
+  style = useMemo(
+    () =>
+      ({
+        ...theme,
+        "--row-height": `${theme["--row-height"]}px`,
+        ...style,
+      } as React.CSSProperties),
+    [style, theme]
+  );
 
   return (
     <>
-      <div
-        style={{ ...style, overflowY: "auto", background: "#0080003b" }}
-        ref={ref}
-      >
-        {/* data.items.length === pagination.total */}
-        {data && <TableBg height={data.items.length * rowHeight} />}
+      <div className={styles.Table} style={style}>
+        <div className={styles.TableHeader}>Table header</div>
+        <div className={styles.TableBody} id="foo" ref={bodyRef}>
+          {/* data.items.length === pagination.total */}
+          {data && (
+            <TableBodyBackground height={data.items.length * rowHeight} />
+          )}
+        </div>
+        <div className={styles.TableFooter}>
+          {pagination && (
+            <Pagination
+              {...pagination}
+              onChange={({ page }) => {
+                const top = Math.min(
+                  pagination.pageSize * rowHeight * (page - 1),
+                  Math.floor(pagination.total * rowHeight - height)
+                );
+                scrollTo(top);
+              }}
+            />
+          )}
+        </div>
       </div>
-
-      {pagination && (
-        <Pagination
-          {...pagination}
-          onChange={({ page }) => {
-            const top = Math.min(
-              pagination.pageSize * rowHeight * (page - 1),
-              Math.floor(pagination.total * rowHeight - height)
-            );
-            scrollTo(top);
-          }}
-        />
-      )}
 
       <pre>
         {data && data.items.length}

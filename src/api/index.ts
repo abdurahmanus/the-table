@@ -13,10 +13,10 @@ export interface FetchDataResult {
   pageSize: number;
 }
 
-export function fetchData({
+export function fetchData(
   current = 1,
-  pageSize = 10,
-}): Promise<FetchDataResult> {
+  pageSize = 10
+): Promise<FetchDataResult> {
   return new Promise((resolve) => {
     setTimeout(
       () =>
