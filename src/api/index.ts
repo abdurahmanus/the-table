@@ -17,6 +17,8 @@ export function fetchData(
   current = 1,
   pageSize = 10
 ): Promise<FetchDataResult> {
+  console.log("fetch data", { current, pageSize });
+
   return new Promise((resolve) => {
     setTimeout(
       () =>

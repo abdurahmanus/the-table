@@ -1,39 +1,17 @@
-import React from "react";
+import React, { memo } from "react";
 import styles from "./Table.module.scss";
 
-function pageButtons(
-  total: number,
-  pageSize: number,
-  current: number
-): Array<number | "..."> {
-  const pagesCount = Math.ceil(total / pageSize);
-  // [< Prev], [ 1 ], [ 2 ], [ 3 ], [...], [ 5 ], [Next >]
-  // max 5 кнопок
-  // [1],2,3,...,7
-  // 1,[2],3,...,7
-  // 1,...,[3],...,7
-  // 1,...,[4],...,7
-  // 1,...,[5],...,7
-  // 1,...,5,[6],7
-  // 1,...,5,6,[7]
-  const mid: Array<number | "..."> =
-    current < 3
-      ? [2, 3, "..."]
-      : current > pagesCount - 3
-      ? ["...", pagesCount - 2, pagesCount - 1]
-      : ["...", current, "..."];
+// const typedMemo: <T>(c: T) => T = memo;
 
-  return [1, ...mid, pagesCount];
-}
-
-// todo: optimize, refactor
 export const Pagination: React.FC<{
   pageSize: number;
   current: number;
   total: number;
   onChange: (e: { page: number }) => void;
-}> = ({ pageSize, current, total, onChange }) => {
+}> = memo(({ pageSize, current, total, onChange }) => {
   const pagesCount = Math.ceil(total / pageSize);
+
+  console.log("render pagination");
 
   return (
     <div className={styles.Pagination}>
@@ -64,4 +42,29 @@ export const Pagination: React.FC<{
       </button>
     </div>
   );
-};
+});
+
+function pageButtons(
+  total: number,
+  pageSize: number,
+  current: number
+): Array<number | "..."> {
+  const pagesCount = Math.ceil(total / pageSize);
+  // [< Prev], [ 1 ], [ 2 ], [ 3 ], [...], [ 5 ], [Next >]
+  // max 5 кнопок
+  // [1],2,3,...,7
+  // 1,[2],3,...,7
+  // 1,...,[3],...,7
+  // 1,...,[4],...,7
+  // 1,...,[5],...,7
+  // 1,...,5,[6],7
+  // 1,...,5,6,[7]
+  const mid: Array<number | "..."> =
+    current < 3
+      ? [2, 3, "..."]
+      : current > pagesCount - 3
+      ? ["...", pagesCount - 2, pagesCount - 1]
+      : ["...", current, "..."];
+
+  return [1, ...mid, pagesCount];
+}

@@ -15,16 +15,18 @@ $shadow-color: #8c8c8c;
 }
 
 .TableHeader {
+  padding: 1em 0;
+  display: flex;
+  font-weight: bold;
   box-shadow: 0 5px 5px -5px $shadow-color;
   z-index: 1000;
-  font-weight: bold;
-  padding: 1em 0;
 }
 
 .TableBody {
   $track-color: transparent;
   $thumb-color: #bdbdbd;
 
+  position: relative;
   flex-grow: 1;
   overflow: auto;
 
@@ -51,6 +53,12 @@ $shadow-color: #8c8c8c;
     var(--row-color-alternate) var(--row-height),
     var(--row-color-alternate) calc(var(--row-height) * 2)
   );
+}
+
+.TableRow {
+  position: absolute;
+  line-height: var(--row-height);
+  display: flex;
 }
 
 .TableFooter {
