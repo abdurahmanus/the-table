@@ -28,7 +28,7 @@ export function fetchData(
           current,
           pageSize,
         }),
-      Math.random() * 1000
+      Math.random() * 500
     );
   });
 }

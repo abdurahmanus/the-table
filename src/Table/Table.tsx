@@ -51,8 +51,14 @@ export function Table<TDataItem extends BaseDataItem>({
   const [data, setData] = useState<TableData<TDataItem> | null>(null);
   const [pagination, setPagination] = useState<PaginationOptions | null>(null);
   const [checked, setChecked] = useState<boolean[]>([]);
+  const [eachScrollTop, setEachScrollTop] = useState(0);
 
-  const { scrollTo, scrollTop } = useScroll(bodyRef);
+  const { scrollTo, scrollTop } = useScroll(
+    bodyRef,
+    useCallback((top: number) => {
+      setEachScrollTop(top);
+    }, [])
+  );
   const [, height] = useResizeObserver(bodyRef);
 
   const rowHeight = theme["--row-height"];
@@ -65,7 +71,7 @@ export function Table<TDataItem extends BaseDataItem>({
     ): Promise<number> /* total */ {
       let ps: Array<Promise<TableDataAndPagination<TDataItem>>> = [];
       for (const q of queries) {
-        if (!pageLoaded(data, q.page, q.pageSize)) {
+        if (!allPageItemsLoaded(data, q.page, q.pageSize)) {
           ps.push(onUpdate(q.page, q.pageSize));
         }
       }
@@ -101,8 +107,8 @@ export function Table<TDataItem extends BaseDataItem>({
   }, [onUpdate, height, scrollTop, rowHeight, data]);
 
   const visibleRows = useMemo(
-    () => getVisibleRows(scrollTop, height, rowHeight),
-    [scrollTop, height, rowHeight]
+    () => getVisibleRows(eachScrollTop, height, rowHeight, data),
+    [eachScrollTop, height, rowHeight, data]
   );
 
   style = useMemo(
@@ -123,13 +129,13 @@ export function Table<TDataItem extends BaseDataItem>({
 
   const onChangePage = useCallback(
     ({ page: newPage }: { page: number }) => {
-      scrollTo(
-        calculateScrollTop(
-          { ...pagination!, current: newPage },
-          rowHeight,
-          height
-        )
+      const top = calculateScrollTop(
+        { ...pagination!, current: newPage },
+        rowHeight,
+        height
       );
+      console.log("calculateScrollTop", top);
+      scrollTo(top);
     },
     [height, pagination, rowHeight, scrollTo]
   );
@@ -151,7 +157,7 @@ export function Table<TDataItem extends BaseDataItem>({
                   style={{ top: i * rowHeight }}
                 >
                   {checkable && (
-                    <div style={{ width: 50 }}>
+                    <div className={`${styles.TableCell} checkable`}>
                       <input
                         type="checkbox"
                         checked={!!checked[i]}
@@ -160,13 +166,16 @@ export function Table<TDataItem extends BaseDataItem>({
                     </div>
                   )}
                   {columns.map((c) => (
-                    <div key={c.key} style={{ width: c.width || "auto" }}>
+                    <div
+                      key={c.key}
+                      className={styles.TableCell}
+                      style={{ width: c.width || "auto" }}
+                    >
                       {data.items[i] ? data.items[i][c.dataIndex] : "..."}
                     </div>
                   ))}
                 </div>
               ))}
-              )}
             </>
           )}
         </div>
@@ -176,6 +185,19 @@ export function Table<TDataItem extends BaseDataItem>({
       </div>
     </>
   );
+}
+
+const skeletonStyle: React.CSSProperties = {
+  background: "#ccc",
+  width: "calc(100% - 10px)",
+  height: "calc(100% - 20px)",
+  position: "relative",
+  top: 10,
+  left: 0,
+};
+
+function Skeleton() {
+  return <div style={skeletonStyle}></div>;
 }
 
 function mergeData<TDataItem>(
@@ -204,7 +226,7 @@ function mergeData<TDataItem>(
   );
 }
 
-function pageLoaded<TDataItem>(
+function allPageItemsLoaded<TDataItem>(
   data: TableData<TDataItem> | null,
   page: number,
   pageSize: number
@@ -238,10 +260,14 @@ function calculateScrollTop(
 function getVisibleRows(
   scrollTop: number,
   height: number,
-  rowHeight: number
+  rowHeight: number,
+  data: TableData<any> | null
 ): number[] {
-  if (!height) return [];
+  if (!height || !data) return [];
   const from = Math.floor(scrollTop / rowHeight),
-    to = Math.ceil((scrollTop + height) / rowHeight);
-  return Array.from(Array(to - from).keys()).map((i) => from + i); // { from, to };
+    to = Math.min(
+      Math.ceil((scrollTop + height) / rowHeight),
+      data.items.length
+    );
+  return Array.from(Array(to - from).keys()).map((i) => from + i);
 }

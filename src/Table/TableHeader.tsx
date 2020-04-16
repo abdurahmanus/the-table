@@ -15,9 +15,13 @@ export const TableHeader = typedMemo(function TableHeader<TDataItem>({
 }: TableHeaderProps<TDataItem>) {
   return (
     <div className={styles.TableHeader}>
-      {checkable && <div style={{ width: 50 }}></div>}
+      {checkable && <div className={`${styles.TableCell} checkable`}></div>}
       {columns.map((c) => (
-        <div key={c.key} style={{ width: c.width || "auto" }}>
+        <div
+          key={c.key}
+          className={styles.TableCell}
+          style={{ width: c.width || "auto" }}
+        >
           {c.title}
         </div>
       ))}

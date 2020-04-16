@@ -1,4 +1,5 @@
 $shadow-color: #8c8c8c;
+$checkable-width: 50px;
 
 .Table {
   display: flex;
@@ -20,6 +21,10 @@ $shadow-color: #8c8c8c;
   font-weight: bold;
   box-shadow: 0 5px 5px -5px $shadow-color;
   z-index: 1000;
+
+  // & :global(.checkable) {
+  //   width: $checkable-width;
+  // }
 }
 
 .TableBody {
@@ -59,6 +64,17 @@ $shadow-color: #8c8c8c;
   position: absolute;
   line-height: var(--row-height);
   display: flex;
+}
+
+.TableCell {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  padding: 0 0.5em;
+
+  &:global(.checkable) {
+    width: $checkable-width;
+  }
 }
 
 .TableFooter {

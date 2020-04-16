@@ -2,20 +2,6 @@
 
 body {
   font-family: "Ubuntu", sans-serif;
+  padding: 0;
+  margin: 0;
 }
-
-/* #foo {
-  scrollbar-width: thin;
-  scrollbar-color: blue orange;
-}
-#foo::-webkit-scrollbar {
-  width: 12px;
-}
-#foo::-webkit-scrollbar-track {
-  background: orange;
-}
-#foo::-webkit-scrollbar-thumb {
-  background-color: blue;
-  border-radius: 20px;
-  border: 3px solid orange;
-} */
