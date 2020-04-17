@@ -92,21 +92,14 @@ export function Table<TDataItem extends BaseDataItem>({
 
     // todo: разобраться почему высота меняется 2жды в начале
     async function doUpdate() {
-      const pageSize = Math.floor(height / rowHeight),
-        current = Math.ceil(scrollTop / (pageSize * rowHeight)) + 1,
-        prev = Math.floor(scrollTop / (pageSize * rowHeight)) + 1,
-        twoPages = current !== prev,
-        queries = twoPages
-          ? [
-              { page: prev, pageSize },
-              { page: current, pageSize },
-            ]
-          : [{ page: current, pageSize }];
+      const pageSize = getPageSize(height, rowHeight),
+        pages = getPagesForScrollTop(pageSize, rowHeight, scrollTop),
+        queries = pages.map((page) => ({ page, pageSize }));
 
       const total = await updateIfNeeded(queries);
 
       setPagination({
-        current: current,
+        current: pages[pages.length - 1],
         pageSize: pageSize,
         total,
       });
@@ -223,6 +216,19 @@ function mergeData<TDataItem>(
     }
   );
 }
+
+const getPageSize = (viewHeight: number, rowHeight: number) =>
+  Math.floor(viewHeight / rowHeight);
+
+const getPagesForScrollTop = (
+  pageSize: number,
+  rowHeight: number,
+  scrollTop: number
+) => {
+  const previous = Math.floor(scrollTop / (pageSize * rowHeight)) + 1,
+    current = Math.ceil(scrollTop / (pageSize * rowHeight)) + 1;
+  return previous === current ? [current] : [previous, current];
+};
 
 function pageIsLoaded<TDataItem>(
   data: TableData<TDataItem> | null,
