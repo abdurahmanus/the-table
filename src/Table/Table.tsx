@@ -40,6 +40,19 @@ export const defaultTheme: TableTheme = {
   "--text-color": "#404040",
 };
 
+const RowCheckbox = memo(
+  (props: {
+    row: number;
+    checked?: boolean;
+    onChange: (row: number) => void;
+  }) => (
+    <Checkbox
+      checked={props.checked}
+      onChange={(e) => props.onChange(props.row)}
+    />
+  )
+);
+
 export function Table<TDataItem extends BaseDataItem>({
   style,
   onUpdate,
@@ -54,12 +67,7 @@ export function Table<TDataItem extends BaseDataItem>({
   const [checked, setChecked] = useState<boolean[]>([]);
   const [eachScrollTop, setEachScrollTop] = useState(0);
 
-  const { scrollTo, scrollTop } = useScroll(
-    bodyRef,
-    useCallback((top: number) => {
-      setEachScrollTop(top);
-    }, [])
-  );
+  const { scrollTo, scrollTop } = useScroll(bodyRef, setEachScrollTop);
   const [, height] = useResizeObserver(bodyRef);
 
   const rowHeight = theme["--row-height"];
@@ -72,7 +80,7 @@ export function Table<TDataItem extends BaseDataItem>({
     ): Promise<number> /* total */ {
       let ps: Array<Promise<TableDataAndPagination<TDataItem>>> = [];
       for (const q of queries) {
-        if (!allPageItemsLoaded(data, q.page, q.pageSize)) {
+        if (!pageIsLoaded(data, q.page, q.pageSize)) {
           ps.push(onUpdate(q.page, q.pageSize));
         }
       }
@@ -105,12 +113,7 @@ export function Table<TDataItem extends BaseDataItem>({
     }
 
     doUpdate();
-  }, [onUpdate, height, scrollTop, rowHeight, data]);
-
-  const visibleRows = useMemo(
-    () => getVisibleRows(eachScrollTop, height, rowHeight, data),
-    [eachScrollTop, height, rowHeight, data]
-  );
+  }, [onUpdate, rowHeight, height, scrollTop, data]);
 
   style = useMemo(
     () =>
@@ -122,23 +125,30 @@ export function Table<TDataItem extends BaseDataItem>({
     [style, theme]
   );
 
-  function toggleCheck(row: number) {
-    const newChecked = checked.slice(0);
-    newChecked[row] = !newChecked[row];
-    setChecked(newChecked);
-  }
+  const toggleCheck = useCallback((row: number) => {
+    setChecked((checked) => {
+      const newChecked = checked.slice(0);
+      newChecked[row] = !newChecked[row];
+      return newChecked;
+    });
+  }, []);
 
   const onChangePage = useCallback(
     ({ page: newPage }: { page: number }) => {
-      const top = calculateScrollTop(
-        { ...pagination!, current: newPage },
-        rowHeight,
-        height
+      scrollTo(
+        calculateScrollTop(
+          { ...pagination!, current: newPage },
+          rowHeight,
+          height
+        )
       );
-      console.log("calculateScrollTop", top);
-      scrollTo(top);
     },
     [height, pagination, rowHeight, scrollTo]
+  );
+
+  const visibleRows = useMemo(
+    () => getVisibleRows(eachScrollTop, height, rowHeight, data),
+    [eachScrollTop, height, rowHeight, data]
   );
 
   return (
@@ -159,9 +169,10 @@ export function Table<TDataItem extends BaseDataItem>({
                 >
                   {checkable && (
                     <div className={`${styles.TableCell} checkable`}>
-                      <Checkbox
+                      <RowCheckbox
+                        row={i}
                         checked={!!checked[i]}
-                        onChange={() => toggleCheck(i)}
+                        onChange={toggleCheck}
                       />
                     </div>
                   )}
@@ -213,7 +224,7 @@ function mergeData<TDataItem>(
   );
 }
 
-function allPageItemsLoaded<TDataItem>(
+function pageIsLoaded<TDataItem>(
   data: TableData<TDataItem> | null,
   page: number,
   pageSize: number
