@@ -1,4 +1,4 @@
-import { useEffect, useCallback, useState, useMemo } from "react";
+import { useEffect, useCallback, useState } from "react";
 import smoothscroll from "smoothscroll-polyfill";
 import debounce from "lodash/fp/debounce"; // todo: не тащить за собой библиотеку из-за одной функции
 
@@ -42,5 +42,5 @@ export function useScroll(
     [targetRef]
   );
 
-  return useMemo(() => ({ scrollTo, scrollTop }), [scrollTo, scrollTop]);
+  return { scrollTo, scrollTop };
 }

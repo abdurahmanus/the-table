@@ -19,6 +19,7 @@ import {
   BaseDataItem,
 } from "./interface";
 import { TableHeader } from "./TableHeader";
+import { Checkbox } from "./Checkbox";
 
 const TableBodyBackground: React.FC<{ height: number }> = memo(({ height }) => {
   return (
@@ -83,7 +84,7 @@ export function Table<TDataItem extends BaseDataItem>({
 
     // todo: разобраться почему высота меняется 2жды в начале
     async function doUpdate() {
-      const pageSize = Math.ceil(height / rowHeight),
+      const pageSize = Math.floor(height / rowHeight),
         current = Math.ceil(scrollTop / (pageSize * rowHeight)) + 1,
         prev = Math.floor(scrollTop / (pageSize * rowHeight)) + 1,
         twoPages = current !== prev,
@@ -158,8 +159,7 @@ export function Table<TDataItem extends BaseDataItem>({
                 >
                   {checkable && (
                     <div className={`${styles.TableCell} checkable`}>
-                      <input
-                        type="checkbox"
+                      <Checkbox
                         checked={!!checked[i]}
                         onChange={() => toggleCheck(i)}
                       />
@@ -185,19 +185,6 @@ export function Table<TDataItem extends BaseDataItem>({
       </div>
     </>
   );
-}
-
-const skeletonStyle: React.CSSProperties = {
-  background: "#ccc",
-  width: "calc(100% - 10px)",
-  height: "calc(100% - 20px)",
-  position: "relative",
-  top: 10,
-  left: 0,
-};
-
-function Skeleton() {
-  return <div style={skeletonStyle}></div>;
 }
 
 function mergeData<TDataItem>(

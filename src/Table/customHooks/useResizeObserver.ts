@@ -1,6 +1,6 @@
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useState } from "react";
 import ResizeObserver from "resize-observer-polyfill";
-import debounce from "lodash/fp/debounce";
+import debounce from "lodash/fp/debounce"; // todo: не тащить за собой библиотеку из-за одной функции
 
 export function useResizeObserver(
   targetRef: React.RefObject<HTMLElement>,
@@ -24,6 +24,5 @@ export function useResizeObserver(
     return () => observer.unobserve(target!);
   }, [targetRef, wait]);
 
-  // is it ok?
-  return useMemo(() => size, [size]);
+  return size;
 }
